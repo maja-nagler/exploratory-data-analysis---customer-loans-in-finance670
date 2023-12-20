@@ -1,4 +1,3 @@
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
@@ -62,11 +61,17 @@ total_funded_amount = loan_data['funded_amount'].sum()
 
 # Calculate the percentage of total amount recovered in the next 6 months
 future_date = pd.to_datetime('today') + pd.DateOffset(months=6)
+
+# Converting 'last_payment_date' to timestamp objects (to prevent an error)
+loan_data['last_payment_date'] = pd.to_datetime(loan_data['last_payment_date'])
+
 future_recovery = loan_data[loan_data['last_payment_date'] <= future_date]['recoveries'].sum()
+
 percentage_future_recovery = (future_recovery / total_funded_amount) * 100
 
 print(f"Percentage of loans recovered against investor funding: {percentage_recovered:.2f}%")
 print(f"Percentage of total amount to be recovered in next 6 months: {percentage_future_recovery:.2f}%")
+
 
 
 #2. Calculating loans
@@ -86,16 +91,26 @@ print(f"Percentage of charged off loans historically: {charged_off_percentage:.2
 print(f"Total amount paid towards charged off loans: ${total_amount_paid_charged_off:.2f}")
 
 
+
 #3. Calculate project loss
 
 #Filter Charged Off Loans
 charged_off_loans = loan_data[loan_data['loan_status'] == 'Charged Off']
 
 #Calculate Remaining Term and Projected Loss
-charged_off_loans['remaining_term'] = charged_off_loans['term'] - charged_off_loans['total_payment'] / charged_off_loans['instalment']
+
+# Extracting the numeric part using regular expressions
+charged_off_loans['term_numeric'] = charged_off_loans['term'].str.extract('(\d+)')
+
+# Turining values into numeric
+charged_off_loans['term_numeric'] = pd.to_numeric(charged_off_loans['term_numeric'])
+
+#Adding 'remaining_term' values, calculated as substraction of the number of payments already made from the total term 
+charged_off_loans['remaining_term'] = charged_off_loans['term_numeric'] - charged_off_loans['total_payment'] / charged_off_loans['instalment']
 
 # Calculate projected loss in revenue
 charged_off_loans['projected_loss'] = charged_off_loans['remaining_term'] * charged_off_loans['instalment']
+
 total_projected_loss = charged_off_loans['projected_loss'].sum()
 
 
@@ -107,30 +122,48 @@ plt.ylabel('Projected Loss')
 plt.title('Projected Loss Over Remaining Term')
 plt.show()
 
-
 #4. Possible loan
 
 # Step 1: Identify customers currently behind on payments
-late_customers = loan_data[(loan_data['loan_status'] == 'Late') | (loan_data['loan_status'] == 'Delinquent')]
+loan_data['loan_status'].unique()
+
+late_customers = loan_data[loan_data['loan_status'].str.contains('Late', na=False)]
+late_customers.head()
+
 
 # Step 2: Calculate metrics
 total_loans = len(loan_data)
 percentage_late_customers = (len(late_customers) / total_loans) * 100
 
-late_customers_charged_off = late_customers[late_customers['loan_status'] == 'Charged Off']
+#late_customers_to_charged_off = late_customers[late_customers['loan_status'] == 'Charged Off']
 total_late_customers = len(late_customers)
-loss_if_charged_off = late_customers_charged_off['total_payment'].sum()
+
+#Total loss if late customers become charged off
+loss_if_charged_off = late_customers['total_payment'].sum()
+
+# Extracting the numeric part using regular expressions
+late_customers['term_numeric'] = late_customers['term'].str.extract('(\d+)')
+
+#Turining values into numeric
+late_customers['term_numeric'] = pd.to_numeric(late_customers['term_numeric'])
+
+#Adding 'remaining_term' values, calculated as substraction of the number of payments already made from the total term 
+late_customers['remaining_term'] = late_customers['term_numeric'] - late_customers['total_payment'] / late_customers['instalment']
+
 projected_loss_if_completed = late_customers['remaining_term'] * late_customers['instalment']
 
-# Step 3: Calculate percentage of total expected revenue
-charged_off_customers = loan_data[v['loan_status'] == 'Charged Off']
-percentage_expected_revenue = ((len(charged_off_customers) + len(late_customers_charged_off)) / total_loans) * 100
+# # Step 3: Calculate percentage of total expected revenue
+charged_off_loans = loan_data[loan_data['loan_status'] == 'Charged Off']
+
+charged_off_customers = charged_off_loans
+percentage_expected_revenue = ((len(charged_off_customers) + len(late_customers)) / total_loans) * 100
 
 
-#4. Indicators of loss
+# #4. Indicators of loss
 
-charged_off_subset = loan_data[loan_data['loan_status'] == 'Charged Off']
-late_subset = loan_data[(loan_data['loan_status'] == 'Late') | (loan_data['loan_status'] == 'Delinquent')]
+charged_off_subset = charged_off_loans
+late_subset = late_customers 
+
 
 columns_of_interest = ['grade', 'purpose', 'home_ownership']
 
