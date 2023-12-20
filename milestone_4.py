@@ -1,4 +1,11 @@
 
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
+# Setting dataframe
+loan_data = pd.read_csv('loan_payments.csv')
+
 #1. Current status of the loans
 # Data Dictionary for Column Descriptions
 data_dictionary = {
@@ -46,16 +53,16 @@ data_dictionary = {
 
 
 # Calculate percentage of loans recovered against investor funding
-total_recovery = loaded_data['recoveries'].sum()
-total_funded_by_investors = loaded_data['funded_amount_inv'].sum()
+total_recovery = loan_data['recoveries'].sum()
+total_funded_by_investors = loan_data['funded_amount_inv'].sum()
 percentage_recovered = (total_recovery / total_funded_by_investors) * 100
 
 # Calculate total amount funded
-total_funded_amount = loaded_data['funded_amount'].sum()
+total_funded_amount = loan_data['funded_amount'].sum()
 
 # Calculate the percentage of total amount recovered in the next 6 months
 future_date = pd.to_datetime('today') + pd.DateOffset(months=6)
-future_recovery = loaded_data[loaded_data['last_payment_date'] <= future_date]['recoveries'].sum()
+future_recovery = loan_data[loan_data['last_payment_date'] <= future_date]['recoveries'].sum()
 percentage_future_recovery = (future_recovery / total_funded_amount) * 100
 
 print(f"Percentage of loans recovered against investor funding: {percentage_recovered:.2f}%")
@@ -65,10 +72,10 @@ print(f"Percentage of total amount to be recovered in next 6 months: {percentage
 #2. Calculating loans
 
 # Filter Charged Off Loans
-charged_off_loans = loaded_data[loaded_data['loan_status'] == 'Charged Off']
+charged_off_loans = loan_data[loan_data['loan_status'] == 'Charged Off']
 
 #Calculate Percentage of Charged Off Loans
-total_loans = len(loaded_data)
+total_loans = len(loan_data)
 charged_off_percentage = (len(charged_off_loans) / total_loans) * 100
 
 #Calculate Total Amount Paid Towards Charged Off Loans
@@ -81,34 +88,33 @@ print(f"Total amount paid towards charged off loans: ${total_amount_paid_charged
 
 #3. Calculate project loss
 
-    #Filter Charged Off Loans
-    charged_off_loans = loaded_data[loaded_data['loan_status'] == 'Charged Off']
+#Filter Charged Off Loans
+charged_off_loans = loan_data[loan_data['loan_status'] == 'Charged Off']
 
-    #Calculate Remaining Term and Projected Loss
-    charged_off_loans['remaining_term'] = charged_off_loans['term'] - charged_off_loans['total_payment'] / charged_off_loans['instalment']
+#Calculate Remaining Term and Projected Loss
+charged_off_loans['remaining_term'] = charged_off_loans['term'] - charged_off_loans['total_payment'] / charged_off_loans['instalment']
 
-    # Calculate projected loss in revenue
-    charged_off_loans['projected_loss'] = charged_off_loans['remaining_term'] * charged_off_loans['instalment']
-    total_projected_loss = charged_off_loans['projected_loss'].sum()
+# Calculate projected loss in revenue
+charged_off_loans['projected_loss'] = charged_off_loans['remaining_term'] * charged_off_loans['instalment']
+total_projected_loss = charged_off_loans['projected_loss'].sum()
 
 
-    #Visualisation
-    plt.figure(figsize=(10, 6))
-    sns.barplot(x='remaining_term', y='projected_loss', data=charged_off_loans, estimator=sum)
-    plt.xlabel('Remaining Term')
-    plt.ylabel('Projected Loss')
-    plt.title('Projected Loss Over Remaining Term')
-    plt.show()
+#Visualisation
+plt.figure(figsize=(10, 6))
+sns.barplot(x='remaining_term', y='projected_loss', data=charged_off_loans, estimator=sum)
+plt.xlabel('Remaining Term')
+plt.ylabel('Projected Loss')
+plt.title('Projected Loss Over Remaining Term')
+plt.show()
 
 
 #4. Possible loan
 
-
 # Step 1: Identify customers currently behind on payments
-late_customers = loaded_data[(loaded_data['loan_status'] == 'Late') | (loaded_data['loan_status'] == 'Delinquent')]
+late_customers = loan_data[(loan_data['loan_status'] == 'Late') | (loan_data['loan_status'] == 'Delinquent')]
 
 # Step 2: Calculate metrics
-total_loans = len(loaded_data)
+total_loans = len(loan_data)
 percentage_late_customers = (len(late_customers) / total_loans) * 100
 
 late_customers_charged_off = late_customers[late_customers['loan_status'] == 'Charged Off']
@@ -117,28 +123,24 @@ loss_if_charged_off = late_customers_charged_off['total_payment'].sum()
 projected_loss_if_completed = late_customers['remaining_term'] * late_customers['instalment']
 
 # Step 3: Calculate percentage of total expected revenue
-charged_off_customers = loaded_data[loaded_data['loan_status'] == 'Charged Off']
+charged_off_customers = loan_data[v['loan_status'] == 'Charged Off']
 percentage_expected_revenue = ((len(charged_off_customers) + len(late_customers_charged_off)) / total_loans) * 100
+
 
 #4. Indicators of loss
 
+charged_off_subset = loan_data[loan_data['loan_status'] == 'Charged Off']
+late_subset = loan_data[(loan_data['loan_status'] == 'Late') | (loan_data['loan_status'] == 'Delinquent')]
 
-    # Assuming 'loaded_data' contains the DataFrame
-    charged_off_subset = loaded_data[loaded_data['loan_status'] == 'Charged Off']
-    late_subset = loaded_data[(loaded_data['loan_status'] == 'Late') | (loaded_data['loan_status'] == 'Delinquent')]
-
-    columns_of_interest = ['grade', 'purpose', 'home_ownership']
+columns_of_interest = ['grade', 'purpose', 'home_ownership']
 
 
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-
-    for column in columns_of_interest:
-        plt.figure(figsize=(10, 6))
-        sns.countplot(x=column, data=charged_off_subset, hue='loan_status', palette='Set1')
-        plt.title(f'Comparison of {column} for Charged Off Users and Late Users')
-        plt.xlabel(column)
-        plt.ylabel('Count')
-        plt.xticks(rotation=45)
-        plt.legend(title='Loan Status', labels=['Charged Off', 'Late'])
-        plt.show()
+for column in columns_of_interest:
+    plt.figure(figsize=(10, 6))
+    sns.countplot(x=column, data=charged_off_subset, hue='loan_status', palette='Set1')
+    plt.title(f'Comparison of {column} for Charged Off Users and Late Users')
+    plt.xlabel(column)
+    plt.ylabel('Count')
+    plt.xticks(rotation=45)
+    plt.legend(title='Loan Status', labels=['Charged Off', 'Late'])
+    plt.show()

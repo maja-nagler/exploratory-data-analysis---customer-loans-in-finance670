@@ -38,24 +38,22 @@ class RDSDatabaseConnector:
 
 
 def main():
-    # Step 3: Load credentials from credentials.yaml
+    # Step 3: Loading credentials from credentials.yaml
     db = RDSDatabaseConnector({})
     credentials = db.load_credentials('credentials.yaml')
     
-    # Step 4: Initialize RDSDatabaseConnector with credentials
+    # Step 4: Initialising RDSDatabaseConnector with credentials
     db = RDSDatabaseConnector(credentials)
     
-    # Step 5: Initialize SQLAlchemy engine
+    # Step 5: Initialising SQLAlchemy engine
     db.initialize_engine()
     
-    # Step 6: Extract data from RDS database to DataFrame
+    # Step 6: Extracting data from RDS database to DataFrame
     loan_data = db.extract_data_to_dataframe()
     
-    # Step 7: Save data to CSV
-    db.save_to_csv(loan_data, 'loan_payments.csv')
+    # Step 7: Saving data to CSV
+    loaded_data = db.save_to_csv(loan_data, 'loan_payments.csv')
 
-    # Task 3:
-    loaded_data = db.load_data_from_csv('loan_payments.csv')
     
     if loaded_data is not None:
         print("Data loaded successfully.")

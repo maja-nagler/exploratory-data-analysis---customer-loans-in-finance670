@@ -1,8 +1,9 @@
 
-
 import pandas as pd
 
+
 class DataFrameTransform:
+
     def __init__(self, dataframe):
         self.dataframe = dataframe
 
@@ -30,12 +31,11 @@ class DataFrameTransform:
     def transform_skewed_columns(self, columns):
         # Transform skewed columns using appropriate methods
         for col in columns:
-            self.dataframe[col] = self.dataframe[col].apply(lambda x: x ** 0.5)  # Example transformation, use appropriate methods
+            self.dataframe[col] = self.dataframe[col].apply(lambda x: x ** 0.5)  # Example transformation 
         
     def remove_outliers(self, columns):
         # Remove outliers from specified columns
         for col in columns:
-            # Code to remove outliers (through using z-score )
             # Removing outliers using Z-score method
             z_scores = np.abs((self.dataframe[col] - self.dataframe[col].mean()) / self.dataframe[col].std())
             self.dataframe = self.dataframe[(z_scores < 3)]
