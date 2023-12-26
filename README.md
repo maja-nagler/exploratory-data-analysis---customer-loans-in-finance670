@@ -7,7 +7,7 @@ Project is an attempt to apply EDA to fake dataset on customer loans in finance
 # Usage instructions:
     The project contains the following files:
 
-**"*db_utils.py"**: contains code to extract the data from the database, including class RDSDatabaseConnector containing the methods which extracting data from the RDS database into "loan_payments.csv" file.
+**"db_utils.py"**: contains code to extract the data from the database, including class RDSDatabaseConnector containing the methods which extracting data from the RDS database into "loan_payments.csv" file.
 
 **"credentials.yaml"**: stores the database credentials (part of ".gitignore" file)
 

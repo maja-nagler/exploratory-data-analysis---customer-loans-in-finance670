@@ -1,7 +1,8 @@
-
-import pandas as pd
-from DataTransform import DataTransform
 from DataFrameInfo import DataFrameInfo
+from DataTransform import DataTransform
+import pandas as pd
+
+
 
 # Loading data into dataframe as "loan_data"
 loan_data = pd.read_csv('loan_payments.csv')
