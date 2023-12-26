@@ -3,6 +3,8 @@ import pandas as pd
 # Creating DataFrameInfo class
 
 class DataFrameInfo:
+    def __init__(self, dataframe):
+        self.dataframe = dataframe
     @staticmethod
     def describe_columns(dataframe):
         return dataframe.dtypes
